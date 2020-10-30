@@ -1,0 +1,17 @@
+L <- list(count = c1.vs.c2,  condt =condition, utr_sites=  exon , gene.id = gene)
+#########################run limma pipeline#######################################
+nam.txt <- paste(unique(L$condt)[1], ".vs.",unique(L$condt)[2],".txt" , sep = "")
+nam.pdf <- paste(unique(L$condt)[1], ".vs.",unique(L$condt)[2], ".pdf", sep = "")
+dge <- DGEList(L$count, group = L$condt)
+dge <- calcNormFactors(dge)
+design <- model.matrix(~L$condt)
+pdf(file = nam.pdf, width = 8, height = 8)
+vm <- voom(dge, design = design, plot = T)
+dev.off()
+fit <- lmFit(vm, design = design)
+fit <- eBayes(fit)
+ex <- diffSplice(fit, L$gene.id, exonid=L$utr_sites, robust=FALSE, verbose=TRUE)
+l <- length(unique(L$gene.id))
+tt <-topSplice(ex, coef=ncol(ex), test="t", number=l, FDR=1, logFC="exon")
+write.table(tt, nam)
+ 
